@@ -1,0 +1,43 @@
+{% extends 'threat_analyzer/base.html' %}
+
+{% block title %}Nouvelle Enquête - Attijari Bank{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-lg text-white">
+    <div class="mb-6">
+        <h2 class="text-2xl font-bold tracking-tight">Nouvelle enquête</h2>
+        <p class="text-sm text-slate-400 mt-1">Créez un dossier pour regrouper les indicateurs d'une même investigation.</p>
+    </div>
+
+    <form method="POST" class="bg-attijari-panel border border-slate-800 rounded-xl shadow-xl p-6 space-y-4">
+        {% csrf_token %}
+
+        <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5">Titre</label>
+            {{ form.titre }}
+            {% if form.titre.errors %}<p class="text-attijari-red text-xs mt-1">{{ form.titre.errors|join:", " }}</p>{% endif %}
+        </div>
+
+        <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5">Description</label>
+            {{ form.description }}
+        </div>
+
+        <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5">Statut</label>
+            {{ form.statut }}
+        </div>
+
+        <div class="flex gap-3 pt-2">
+            <button type="submit"
+                    class="bg-gradient-to-r from-attijari-red to-attijari-orange hover:opacity-90 text-white font-medium px-5 py-2.5 rounded-lg transition shadow-md text-sm">
+                Créer l'enquête
+            </button>
+            <a href="{% url 'liste_investigations' %}"
+               class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium px-5 py-2.5 rounded-lg border border-slate-700 transition text-sm">
+                Annuler
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

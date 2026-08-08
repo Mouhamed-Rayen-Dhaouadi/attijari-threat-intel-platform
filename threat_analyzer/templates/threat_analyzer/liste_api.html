@@ -1,0 +1,103 @@
+{% extends 'threat_analyzer/base.html' %}
+
+{% block title %}Gestion des Clés API - Attijari Bank{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-5xl text-white">
+    <div class="mb-6 flex items-center justify-between">
+        <div>
+            <h2 class="text-2xl font-bold tracking-tight">Gestion des Clés API</h2>
+            <p class="text-sm text-slate-400 mt-1">Sources externes utilisées pour l'investigation des IOC.</p>
+        </div>
+        <a href="{% url 'creer_api' %}"
+           class="bg-gradient-to-r from-attijari-red to-attijari-orange hover:opacity-90 text-white font-medium px-4 py-2.5 rounded-lg transition shadow-md text-sm flex items-center gap-2">
+            <i class="fa-solid fa-plus"></i> Nouvelle source
+        </a>
+    </div>
+
+    <div class="bg-attijari-panel border border-slate-800 rounded-xl shadow-xl overflow-x-auto">
+        <table class="w-full text-left border-separate border-spacing-0">
+            <thead>
+                <tr class="border-b border-slate-800 bg-[#0d1524] text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    <th class="py-4 px-6">Fournisseur</th>
+                    <th class="py-4 px-6">Clé API</th>
+                    <th class="py-4 px-6">Statut</th>
+                    <th class="py-4 px-6">Quota restant</th>
+                    <th class="py-4 px-6">Quota consommé</th>
+                    <th class="py-4 px-6">Dernière utilisation</th>
+                    <th class="py-4 px-6 text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/60 text-sm">
+                {% for config in configurations %}
+                <tr class="hover:bg-slate-800/30 transition">
+                    <td class="py-4 px-6 font-mono font-bold text-slate-200">{{ config.nom_fournisseur }}</td>
+
+                    <td class="py-4 px-6">
+                        <div class="flex items-center gap-2">
+                            <span class="font-data text-xs text-slate-400" id="cle-{{ config.id }}">
+                                {{ config.cle_masquee }}
+                            </span>
+                            <span class="hidden" id="cle-reelle-{{ config.id }}">{{ config.cle_api }}</span>
+                            <button type="button" onclick="basculerCle({{ config.id }})"
+                                    class="text-slate-500 hover:text-attijari-orange transition" title="Afficher/Masquer">
+                                <i class="fa-solid fa-eye" id="icone-cle-{{ config.id }}"></i>
+                            </button>
+                        </div>
+                    </td>
+
+                    <td class="py-4 px-6">
+                        {% if config.actif %}
+                        <span class="px-2.5 py-1 text-xs font-bold uppercase rounded bg-emerald-950/60 text-emerald-400 border border-emerald-800/50">Actif</span>
+                        {% else %}
+                        <span class="px-2.5 py-1 text-xs font-bold uppercase rounded bg-slate-800 text-slate-400 border border-slate-700">Inactif</span>
+                        {% endif %}
+                    </td>
+
+                    <td class="py-4 px-6 font-data text-xs text-slate-300">{{ config.quota_restant }}</td>
+                    <td class="py-4 px-6 font-data text-xs text-slate-400">{{ config.quota_consomme }}</td>
+                    <td class="py-4 px-6 font-data text-xs text-slate-500">
+                        {{ config.date_derniere_utilisation|date:"d/m/Y H:i"|default:"—" }}
+                    </td>
+
+                    <td class="py-4 px-6 text-center whitespace-nowrap">
+                        <a href="{% url 'modifier_api' config.id %}"
+                           class="inline-flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium px-3 py-1.5 rounded-lg border border-slate-700 transition mr-2">
+                            <i class="fa-solid fa-pen"></i> Modifier
+                        </a>
+                        <a href="{% url 'supprimer_api' config.id %}"
+                           class="inline-flex items-center gap-1.5 bg-attijari-red/10 hover:bg-attijari-red/20 text-attijari-red text-xs font-medium px-3 py-1.5 rounded-lg border border-attijari-red/40 transition">
+                            <i class="fa-solid fa-trash"></i> Supprimer
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="py-10 text-center text-slate-500">
+                        Aucune source API configurée.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+function basculerCle(id) {
+    const masquee = document.getElementById('cle-' + id);
+    const reelle = document.getElementById('cle-reelle-' + id);
+    const icone = document.getElementById('icone-cle-' + id);
+
+    if (reelle.classList.contains('hidden')) {
+        reelle.classList.remove('hidden');
+        masquee.classList.add('hidden');
+        icone.className = 'fa-solid fa-eye-slash';
+    } else {
+        reelle.classList.add('hidden');
+        masquee.classList.remove('hidden');
+        icone.className = 'fa-solid fa-eye';
+    }
+}
+</script>
+{% endblock %}

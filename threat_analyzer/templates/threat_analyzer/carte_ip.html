@@ -1,0 +1,68 @@
+{% extends 'threat_analyzer/base.html' %}
+
+{% block title %}Carte des IP Scannées - Attijari Bank{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<style>
+    #carte { height: 600px; border-radius: 12px; }
+    .leaflet-popup-content-wrapper { background: #131C2E; color: white; border-radius: 8px; }
+    .leaflet-popup-tip { background: #131C2E; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-6xl text-white">
+    <div class="mb-6 flex items-center justify-between">
+        <div>
+            <h2 class="text-2xl font-bold tracking-tight">Carte des IP Scannées</h2>
+            <p class="text-sm text-slate-400 mt-1">{{ nb_points }} adresse(s) IP géolocalisée(s) sur l'ensemble des scans.</p>
+        </div>
+        <a href="{% url 'ioc_scanner' %}"
+           class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium px-4 py-2.5 rounded-lg border border-slate-700 transition text-sm flex items-center gap-2">
+            <i class="fa-solid fa-arrow-left"></i> Retour au scanner
+        </a>
+    </div>
+
+    <div id="carte" class="border border-slate-800 shadow-xl"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+    const points = {{ points_json|safe }};
+
+    const carte = L.map('carte', { worldCopyJump: true }).setView([20, 0], 2);
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+        subdomains: 'abcd',
+        maxZoom: 19,
+    }).addTo(carte);
+
+    const couleurs = {
+        critique: '#C62828',
+        eleve: '#EF6C00',
+        moyen: '#F2C94C',
+        faible: '#10B981',
+    };
+
+    points.forEach(function(p) {
+        const couleur = couleurs[p.severite] || '#64748b';
+
+        L.circleMarker([p.latitude, p.longitude], {
+            radius: 7,
+            fillColor: couleur,
+            color: '#0A0E1A',
+            weight: 2,
+            fillOpacity: 0.85,
+        }).addTo(carte).bindPopup(
+            `<strong>${p.drapeau} ${p.valeur}</strong><br>${p.ville ? p.ville + ', ' : ''}${p.pays}<br><span style="color:${couleur}">${p.severite.toUpperCase()}</span>`
+        );
+    });
+
+    if (points.length === 0) {
+        document.getElementById('carte').insertAdjacentHTML('afterend',
+            '<p class="text-center text-slate-500 mt-4">Aucune IP géolocalisable trouvée pour le moment.</p>');
+    }
+</script>
+{% endblock %}

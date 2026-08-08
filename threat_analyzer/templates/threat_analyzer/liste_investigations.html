@@ -1,0 +1,62 @@
+{% extends 'threat_analyzer/base.html' %}
+
+{% block title %}Enquêtes - Attijari Bank{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-5xl text-white">
+    <div class="mb-6 flex items-center justify-between">
+        <div>
+            <h2 class="text-2xl font-bold tracking-tight">Enquêtes</h2>
+            <p class="text-sm text-slate-400 mt-1">Regroupement d'indicateurs liés à une même campagne ou incident.</p>
+        </div>
+        <a href="{% url 'creer_investigation' %}"
+           class="bg-gradient-to-r from-attijari-red to-attijari-orange hover:opacity-90 text-white font-medium px-4 py-2.5 rounded-lg transition shadow-md text-sm flex items-center gap-2">
+            <i class="fa-solid fa-folder-plus"></i> Nouvelle enquête
+        </a>
+    </div>
+
+    <div class="bg-attijari-panel border border-slate-800 rounded-xl shadow-xl overflow-x-auto">
+        <table class="w-full text-left border-separate border-spacing-0">
+            <thead>
+                <tr class="border-b border-slate-800 bg-[#0d1524] text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    <th class="py-4 px-6">Titre</th>
+                    <th class="py-4 px-6">Statut</th>
+                    <th class="py-4 px-6">IOC rattachés</th>
+                    <th class="py-4 px-6">Créée par</th>
+                    <th class="py-4 px-6">Dernière mise à jour</th>
+                    <th class="py-4 px-6 text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/60 text-sm">
+                {% for inv in investigations %}
+                <tr class="hover:bg-slate-800/30 transition">
+                    <td class="py-4 px-6 font-bold text-slate-200">{{ inv.titre }}</td>
+                    <td class="py-4 px-6">
+                        {% if inv.statut == 'OUVERTE' %}
+                        <span class="px-2.5 py-1 text-xs font-bold uppercase rounded bg-emerald-950/60 text-emerald-400 border border-emerald-800/50">Ouverte</span>
+                        {% else %}
+                        <span class="px-2.5 py-1 text-xs font-bold uppercase rounded bg-slate-800 text-slate-400 border border-slate-700">Fermée</span>
+                        {% endif %}
+                    </td>
+                    <td class="py-4 px-6 font-data text-xs text-slate-400">{{ inv.indicateurs.count }}</td>
+                    <td class="py-4 px-6 text-slate-400 text-xs">{{ inv.cree_par.username|default:"—" }}</td>
+                    <td class="py-4 px-6 text-slate-500 font-mono text-xs">{{ inv.maj_le|date:"d/m/Y H:i" }}</td>
+                    <td class="py-4 px-6 text-center whitespace-nowrap">
+                        <a href="{% url 'detail_investigation' inv.id %}"
+                           class="inline-flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium px-3 py-1.5 rounded-lg border border-slate-700 transition">
+                            <i class="fa-solid fa-magnifying-glass"></i> Ouvrir
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="py-10 text-center text-slate-500">
+                        Aucune enquête créée pour le moment.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

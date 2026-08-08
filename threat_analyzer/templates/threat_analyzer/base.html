@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Attijari Threat Intelligence{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        display: ['Manrope', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        attijari: {
+                            red: '#C62828',
+                            orange: '#EF6C00',
+                            gold: '#F2994A',
+                            void: '#0A0E1A',
+                            panel: '#131C2E',
+                            raised: '#1B2740',
+                        },
+                        severity: {
+                            critique: '#C62828',
+                            eleve: '#EF6C00',
+                            moyen: '#F2C94C',
+                            faible: '#10B981',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Manrope', sans-serif; }
+        .font-data { font-family: 'JetBrains Mono', monospace; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #0A0E1A; }
+        ::-webkit-scrollbar-thumb { background: #1B2740; border-radius: 4px; }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-attijari-void text-slate-100 min-h-screen flex">
+
+    <aside class="w-64 bg-attijari-panel border-r border-slate-800/80 flex-col justify-between hidden md:flex">
+        <div>
+            <div class="p-5 border-b border-slate-800/80 flex items-center gap-3">
+                <!-- Signature mark: abstract gradient chevron, echoes the Attijari mark without reproducing it -->
+                <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true">
+                    <defs>
+                        <linearGradient id="brandGrad" x1="0" y1="34" x2="34" y2="0">
+                            <stop offset="0%" stop-color="#C62828"/>
+                            <stop offset="100%" stop-color="#F2994A"/>
+                        </linearGradient>
+                    </defs>
+                    <rect width="34" height="34" rx="8" fill="url(#brandGrad)"/>
+                    <path d="M17 8 L25 26 L20.5 26 L17 17.5 L13.5 26 L9 26 Z" fill="#0A0E1A"/>
+                </svg>
+                <div>
+                    <h1 class="text-sm font-display font-extrabold tracking-wide text-white leading-tight">Attijari Bank</h1>
+                    <p class="text-[10px] font-data text-slate-500 tracking-wide">THREAT INTEL PLATFORM</p>
+                </div>
+            </div>
+
+            <nav class="p-4 space-y-1">
+                <p class="text-[10px] uppercase font-bold text-slate-500 tracking-wider px-3 mb-2">Navigation</p>
+
+                {% url 'dashboard' as dashboard_url %}
+                {% url 'ioc_scanner' as scanner_url %}
+                {% url 'database' as database_url %}
+
+                <a href="{{ dashboard_url }}"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition group {% if request.resolver_match.url_name == 'dashboard' %}bg-gradient-to-r from-attijari-red/20 to-transparent border-l-2 border-attijari-red text-white{% else %}text-slate-400 hover:bg-slate-800/50 hover:text-white border-l-2 border-transparent{% endif %}">
+                    <i class="fa-solid fa-chart-pie w-4 {% if request.resolver_match.url_name == 'dashboard' %}text-attijari-orange{% else %}text-slate-500 group-hover:text-attijari-orange{% endif %} transition"></i>
+                    <span class="text-sm font-medium">Dashboard</span>
+                </a>
+
+                {% if request.user.profile.role != 'VIEWER' %}
+                <a href="{{ scanner_url }}"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition group {% if request.resolver_match.url_name == 'ioc_scanner' %}bg-gradient-to-r from-attijari-red/20 to-transparent border-l-2 border-attijari-red text-white{% else %}text-slate-400 hover:bg-slate-800/50 hover:text-white border-l-2 border-transparent{% endif %}">
+                    <i class="fa-solid fa-magnifying-glass w-4 {% if request.resolver_match.url_name == 'ioc_scanner' %}text-attijari-orange{% else %}text-slate-500 group-hover:text-attijari-orange{% endif %} transition"></i>
+                    <span class="text-sm font-medium">On-Demand Scan</span>
+                </a>
+
+                <a href="{{ database_url }}"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition group {% if request.resolver_match.url_name == 'database' %}bg-gradient-to-r from-attijari-red/20 to-transparent border-l-2 border-attijari-red text-white{% else %}text-slate-400 hover:bg-slate-800/50 hover:text-white border-l-2 border-transparent{% endif %}">
+                    <i class="fa-solid fa-database w-4 {% if request.resolver_match.url_name == 'database' %}text-attijari-orange{% else %}text-slate-500 group-hover:text-attijari-orange{% endif %} transition"></i>
+                    <span class="text-sm font-medium">Threat Database</span>
+                </a>
+                {% url 'decouverte_ioc' as decouverte_url %}
+
+<a href="{{ decouverte_url }}"
+   class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition group {% if request.resolver_match.url_name == 'decouverte_ioc' %}bg-gradient-to-r from-attijari-red/20 to-transparent border-l-2 border-attijari-red text-white{% else %}text-slate-400 hover:bg-slate-800/50 hover:text-white border-l-2 border-transparent{% endif %}">
+    <i class="fa-solid fa-satellite-dish w-4 {% if request.resolver_match.url_name == 'decouverte_ioc' %}text-attijari-orange{% else %}text-slate-500 group-hover:text-attijari-orange{% endif %} transition"></i>
+    <span class="text-sm font-medium">Découverte IOC</span>
+</a>
+{% url 'liste_investigations' as investigations_url %}
+
+<a href="{{ investigations_url }}"
+   class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition group {% if request.resolver_match.url_name == 'liste_investigations' or request.resolver_match.url_name == 'creer_investigation' or request.resolver_match.url_name == 'detail_investigation' %}bg-gradient-to-r from-attijari-red/20 to-transparent border-l-2 border-attijari-red text-white{% else %}text-slate-400 hover:bg-slate-800/50 hover:text-white border-l-2 border-transparent{% endif %}">
+    <i class="fa-solid fa-folder-open w-4 {% if request.resolver_match.url_name == 'liste_investigations' %}text-attijari-orange{% else %}text-slate-500 group-hover:text-attijari-orange{% endif %} transition"></i>
+    <span class="text-sm font-medium">Enquêtes</span>
+</a>
+                {% url 'liste_menaces' as menaces_url %}
+{% url 'liste_deploiement' as deploiement_url %}
+
+<a href="{{ menaces_url }}"
+   class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition group {% if request.resolver_match.url_name == 'liste_menaces' %}bg-gradient-to-r from-attijari-red/20 to-transparent border-l-2 border-attijari-red text-white{% else %}text-slate-400 hover:bg-slate-800/50 hover:text-white border-l-2 border-transparent{% endif %}">
+    <i class="fa-solid fa-flag w-4 {% if request.resolver_match.url_name == 'liste_menaces' %}text-attijari-orange{% else %}text-slate-500 group-hover:text-attijari-orange{% endif %} transition"></i>
+    <span class="text-sm font-medium">Menaces Confirmées</span>
+</a>
+
+<a href="{{ deploiement_url }}"
+   class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition group {% if request.resolver_match.url_name == 'liste_deploiement' %}bg-gradient-to-r from-attijari-red/20 to-transparent border-l-2 border-attijari-red text-white{% else %}text-slate-400 hover:bg-slate-800/50 hover:text-white border-l-2 border-transparent{% endif %}">
+    <i class="fa-solid fa-shield-halved w-4 {% if request.resolver_match.url_name == 'liste_deploiement' %}text-attijari-orange{% else %}text-slate-500 group-hover:text-attijari-orange{% endif %} transition"></i>
+    <span class="text-sm font-medium">File de Déploiement</span>
+</a>
+                {% url 'ajouter_ioc_manuel' as ajout_manuel_url %}
+
+              <a href="{{ ajout_manuel_url }}"
+              class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition group {% if request.resolver_match.url_name == 'ajouter_ioc_manuel' %}bg-gradient-to-r from-attijari-red/20 to-transparent border-l-2 border-attijari-red text-white{% else %}text-slate-400 hover:bg-slate-800/50 hover:text-white border-l-2 border-transparent{% endif %}">
+               <i class="fa-solid fa-square-plus w-4 {% if request.resolver_match.url_name == 'ajouter_ioc_manuel' %}text-attijari-orange{% else %}text-slate-500 group-hover:text-attijari-orange{% endif %} transition"></i>
+               <span class="text-sm font-medium">Ajouter un IOC</span>
+               </a>
+                {% endif %}
+                {% if request.user.profile.role == 'ADMIN' %}
+<p class="text-[10px] uppercase font-bold text-slate-500 tracking-wider px-3 mb-2 mt-6">Administration</p>
+
+{% url 'liste_utilisateurs' as utilisateurs_url %}
+{% url 'liste_api' as api_url %}
+
+<a href="{{ utilisateurs_url }}"
+   class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition group {% if request.resolver_match.url_name == 'liste_utilisateurs' or request.resolver_match.url_name == 'creer_utilisateur' or request.resolver_match.url_name == 'modifier_utilisateur' %}bg-gradient-to-r from-attijari-red/20 to-transparent border-l-2 border-attijari-red text-white{% else %}text-slate-400 hover:bg-slate-800/50 hover:text-white border-l-2 border-transparent{% endif %}">
+    <i class="fa-solid fa-users-gear w-4 {% if request.resolver_match.url_name == 'liste_utilisateurs' %}text-attijari-orange{% else %}text-slate-500 group-hover:text-attijari-orange{% endif %} transition"></i>
+    <span class="text-sm font-medium">Gestion Utilisateurs</span>
+</a>
+
+<a href="{{ api_url }}"
+   class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition group {% if request.resolver_match.url_name == 'liste_api' or request.resolver_match.url_name == 'creer_api' or request.resolver_match.url_name == 'modifier_api' %}bg-gradient-to-r from-attijari-red/20 to-transparent border-l-2 border-attijari-red text-white{% else %}text-slate-400 hover:bg-slate-800/50 hover:text-white border-l-2 border-transparent{% endif %}">
+    <i class="fa-solid fa-key w-4 {% if request.resolver_match.url_name == 'liste_api' %}text-attijari-orange{% else %}text-slate-500 group-hover:text-attijari-orange{% endif %} transition"></i>
+    <span class="text-sm font-medium">Clés API</span>
+</a>
+{% endif %}
+            </nav>
+        </div>
+
+        <div class="p-4 border-t border-slate-800/80 bg-attijari-void/60">
+            <div class="flex items-center justify-between mb-3 px-1">
+                <span class="text-[10px] font-data text-slate-500 uppercase tracking-wider">Quota API</span>
+                <span class="text-[10px] font-data {% if quota_global_pct < 20 %}text-attijari-red{% elif quota_global_pct < 50 %}text-attijari-orange{% else %}text-emerald-400{% endif %}">{{ quota_global_pct }}% dispo.</span>
+            </div>
+            <div class="flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-full bg-slate-700 flex items-center justify-center text-sm font-bold text-slate-200">
+                        {{ request.user.username|slice:":1"|upper }}
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-slate-200">{{ request.user.username }}</p>
+                        <span class="inline-flex items-center text-[10px] font-bold text-emerald-400 uppercase bg-emerald-500/10 px-1.5 py-0.5 rounded">
+                            <i class="fa-solid fa-circle text-[6px] mr-1 animate-pulse"></i> {{ request.user.profile.get_role_display }}
+                        </span>
+                    </div>
+                </div>
+                <form method="POST" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="text-slate-500 hover:text-attijari-red transition" title="Déconnexion">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col min-h-screen overflow-y-auto">
+        <header class="h-16 border-b border-slate-800/80 bg-attijari-panel/50 backdrop-blur px-6 flex items-center justify-between">
+            <div class="flex items-center gap-2 text-xs font-data text-slate-400">
+                <span class="text-slate-500">PROD_ENV</span> / <span>SecOps_User_Portal</span>
+            </div>
+            <div class="flex items-center gap-5">
+               {% if request.user.profile.role != 'VIEWER' %}
+<div class="relative">
+    <button type="button" onclick="basculerNotifications()" class="relative text-slate-400 hover:text-white transition" aria-label="Notifications">
+        <i class="fa-regular fa-bell"></i>
+        {% if notifications_count > 0 %}
+        <span class="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full bg-attijari-red text-white text-[8px] font-bold flex items-center justify-center">{{ notifications_count }}</span>
+        {% endif %}
+    </button>
+
+    <div id="panneau-notifications" class="hidden absolute right-0 mt-3 w-80 bg-attijari-panel border border-slate-800 rounded-xl shadow-xl z-50 overflow-hidden">
+        <div class="px-4 py-3 border-b border-slate-800 text-xs font-bold uppercase text-slate-400 tracking-wide">
+            Notifications
+        </div>
+        <div class="max-h-80 overflow-y-auto divide-y divide-slate-800/60">
+            {% for notif in notifications %}
+            <a href="{% if notif.type == 'menace' %}{% url 'database' %}{% else %}{% url 'liste_api' %}{% endif %}"
+               class="px-4 py-3 flex items-start gap-3 hover:bg-slate-800/30 transition cursor-pointer">
+                {% if notif.type == 'menace' %}
+                <i class="fa-solid fa-skull-crossbones text-attijari-red mt-0.5"></i>
+                {% else %}
+                <i class="fa-solid fa-plug-circle-exclamation text-attijari-orange mt-0.5"></i>
+                {% endif %}
+                <div>
+                    <p class="text-xs text-slate-200">{{ notif.texte }}</p>
+                    {% if notif.date %}
+                    <p class="text-[10px] text-slate-500 mt-0.5">{{ notif.date|date:"d/m/Y H:i" }}</p>
+                    {% endif %}
+                </div>
+            </a>
+            {% empty %}
+            <div class="px-4 py-6 text-center text-xs text-slate-500">
+                Aucune notification.
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+                <div class="text-xs text-slate-400">
+                    <i class="fa-regular fa-clock mr-1"></i> Mode Supervision Actif
+                </div>
+            </div>
+        </header>
+
+        <div class="p-6 md:p-10 flex-1 flex flex-col items-center">
+            {% if messages %}
+<div class="w-full max-w-6xl mb-4 space-y-2">
+    {% for message in messages %}
+    <div class="px-4 py-3 rounded-lg text-sm border {% if message.tags == 'success' %}bg-emerald-950/30 border-emerald-800/40 text-emerald-300{% elif message.tags == 'error' %}bg-attijari-red/10 border-attijari-red/40 text-attijari-red{% else %}bg-slate-800/50 border-slate-700 text-slate-300{% endif %}">
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+            {% block content %}
+            {% endblock %}
+        </div>
+    </main>
+    <script>
+function basculerNotifications() {
+    document.getElementById('panneau-notifications').classList.toggle('hidden');
+}
+
+// Ferme le panneau si on clique ailleurs sur la page
+document.addEventListener('click', function(event) {
+    const panneau = document.getElementById('panneau-notifications');
+    const bouton = event.target.closest('button[onclick="basculerNotifications()"]');
+    if (!bouton && panneau && !panneau.contains(event.target)) {
+        panneau.classList.add('hidden');
+    }
+});
+</script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

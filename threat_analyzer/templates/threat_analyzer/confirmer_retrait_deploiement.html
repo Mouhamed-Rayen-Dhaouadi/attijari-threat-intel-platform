@@ -1,0 +1,30 @@
+{% extends 'threat_analyzer/base.html' %}
+
+{% block title %}Confirmer le déploiement - Attijari Bank{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-md text-white">
+    <div class="bg-attijari-panel border border-emerald-800/40 rounded-xl shadow-xl p-6 text-center">
+        <div class="w-14 h-14 bg-emerald-500/10 text-emerald-400 rounded-full flex items-center justify-center text-2xl mx-auto mb-4">
+            <i class="fa-solid fa-check-double"></i>
+        </div>
+        <h2 class="text-lg font-bold mb-2">Confirmer le déploiement ?</h2>
+        <p class="text-sm text-slate-400 mb-6">
+            Vous confirmez avoir déployé le blocage de
+            <span class="font-mono font-bold text-white">{{ deploiement.menace.indicator.indicator_value }}</span>
+            dans les systèmes de protection de la banque. Cette entrée sera retirée de la file d'attente.
+        </p>
+        <form method="POST" class="flex gap-3 justify-center">
+            {% csrf_token %}
+            <button type="submit"
+                    class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-5 py-2.5 rounded-lg transition shadow-md text-sm">
+                Oui, c'est déployé
+            </button>
+            <a href="{% url 'liste_deploiement' %}"
+               class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium px-5 py-2.5 rounded-lg border border-slate-700 transition text-sm">
+                Annuler
+            </a>
+        </form>
+    </div>
+</div>
+{% endblock %}

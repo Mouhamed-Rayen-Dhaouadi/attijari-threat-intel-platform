@@ -1,0 +1,56 @@
+{% extends 'threat_analyzer/base.html' %}
+
+{% block title %}File de Déploiement - Attijari Bank{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-5xl text-white">
+    <div class="mb-6">
+        <h2 class="text-2xl font-bold tracking-tight">File de Déploiement</h2>
+        <p class="text-sm text-slate-400 mt-1">Menaces en attente d'être bloquées dans les systèmes de protection de la banque.</p>
+    </div>
+
+    <div class="bg-attijari-panel border border-slate-800 rounded-xl shadow-xl overflow-x-auto">
+        <table class="w-full text-left border-separate border-spacing-0">
+            <thead>
+                <tr class="border-b border-slate-800 bg-[#0d1524] text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    <th class="py-4 px-6">Indicateur</th>
+                    <th class="py-4 px-6">Type</th>
+                    <th class="py-4 px-6">Ajouté par</th>
+                    <th class="py-4 px-6">Date d'ajout</th>
+                    {% if request.user.profile.role == 'ADMIN' %}
+                    <th class="py-4 px-6 text-center">Actions</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/60 text-sm">
+                {% for deploiement in file_attente %}
+                <tr class="hover:bg-slate-800/30 transition">
+                    <td class="py-4 px-6 font-mono font-bold text-slate-200">{{ deploiement.menace.indicator.indicator_value }}</td>
+                    <td class="py-4 px-6">
+                        <span class="px-2 py-0.5 rounded text-xs font-mono font-bold bg-slate-800 text-attijari-orange border border-slate-700">
+                            {{ deploiement.menace.indicator.indicator_type }}
+                        </span>
+                    </td>
+                    <td class="py-4 px-6 text-slate-300">{{ deploiement.ajoute_par.username|default:"—" }}</td>
+                    <td class="py-4 px-6 text-slate-500 font-mono text-xs">{{ deploiement.ajoute_le|date:"d/m/Y H:i" }}</td>
+                    {% if request.user.profile.role == 'ADMIN' %}
+                    <td class="py-4 px-6 text-center whitespace-nowrap">
+                        <a href="{% url 'retirer_file_deploiement' deploiement.id %}"
+                           class="inline-flex items-center gap-1.5 bg-emerald-950/40 hover:bg-emerald-900/40 text-emerald-400 text-xs font-medium px-3 py-1.5 rounded-lg border border-emerald-800/50 transition">
+                            <i class="fa-solid fa-check-double"></i> Marquer comme déployée
+                        </a>
+                    </td>
+                    {% endif %}
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="{% if request.user.profile.role == 'ADMIN' %}5{% else %}4{% endif %}" class="py-10 text-center text-slate-500">
+                        Aucune menace en attente de déploiement.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

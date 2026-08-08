@@ -1,0 +1,184 @@
+{% extends 'threat_analyzer/base.html' %}
+
+{% block title %}Dashboard - Attijari Threat Intelligence{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-6xl">
+
+    <div class="mb-8">
+        <h2 class="text-2xl font-display font-extrabold text-white">Tableau de bord</h2>
+        <p class="text-sm text-slate-400 mt-1">Supervision en temps réel de l'activité de Threat Intelligence.</p>
+    </div>
+
+    <!-- KPI cards -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+        <div class="bg-attijari-panel p-5 rounded-xl border border-slate-800/80">
+            <p class="text-xs text-slate-400 font-medium uppercase tracking-wide">Analyses effectuées</p>
+            <p class="text-3xl font-display font-extrabold text-white mt-2 font-data">{{ total_scans|default:"0" }}</p>
+            <p class="text-[11px] text-slate-500 mt-1"><i class="fa-solid fa-arrow-trend-up text-emerald-400 mr-1"></i>sur les 30 derniers jours</p>
+        </div>
+        <div class="bg-attijari-panel p-5 rounded-xl border border-slate-800/80">
+            <p class="text-xs text-slate-400 font-medium uppercase tracking-wide">Menaces détectées</p>
+            <p class="text-3xl font-display font-extrabold text-attijari-red mt-2 font-data">{{ malicious_count|default:"0" }}</p>
+            <p class="text-[11px] text-slate-500 mt-1"><i class="fa-solid fa-shield-halved text-attijari-red mr-1"></i>niveau élevé ou critique</p>
+        </div>
+        <div class="bg-attijari-panel p-5 rounded-xl border border-slate-800/80">
+            <p class="text-xs text-slate-400 font-medium uppercase tracking-wide">IOC uniques</p>
+            <p class="text-3xl font-display font-extrabold text-white mt-2 font-data">{{ unique_iocs|default:"0" }}</p>
+            <p class="text-[11px] text-slate-500 mt-1"><i class="fa-solid fa-database text-attijari-orange mr-1"></i>dans la base de connaissances</p>
+        </div>
+        <div class="bg-attijari-panel p-5 rounded-xl border border-slate-800/80">
+            <p class="text-xs text-slate-400 font-medium uppercase tracking-wide">Quota API restant</p>
+            <p class="text-3xl font-display font-extrabold text-emerald-400 mt-2 font-data">{{ quota_restant|default:"78" }}%</p>
+            <p class="text-[11px] text-slate-500 mt-1"><i class="fa-solid fa-plug-circle-check text-emerald-400 mr-1"></i>toutes sources confondues</p>
+        </div>
+    </div>
+
+    <!-- Charts row -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-8">
+
+        <div class="lg:col-span-2 bg-attijari-panel p-6 rounded-xl border border-slate-800/80">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h3 class="text-sm font-semibold text-white">Scans dans le temps</h3>
+                    <p class="text-[11px] text-slate-500">30 derniers jours</p>
+                </div>
+            </div>
+            <div style="position: relative; width: 100%; height: 260px;">
+                <canvas id="scansChart" role="img" aria-label="Courbe du nombre de scans réalisés par jour sur les 30 derniers jours">Volume de scans quotidiens sur 30 jours.</canvas>
+            </div>
+        </div>
+
+        <div class="bg-attijari-panel p-6 rounded-xl border border-slate-800/80">
+            <h3 class="text-sm font-semibold text-white mb-1">Répartition par type d'IOC</h3>
+            <p class="text-[11px] text-slate-500 mb-4">Toutes analyses confondues</p>
+            <div style="position: relative; width: 100%; height: 190px;">
+                <canvas id="iocTypeChart" role="img" aria-label="Diagramme en anneau de la répartition des IOC par type : IP, URL, Domaine, Hash, CVE">Répartition des IOC analysés par type.</canvas>
+            </div>
+            <div id="iocTypeLegend" class="flex flex-wrap gap-x-4 gap-y-2 mt-4 text-[11px] text-slate-400"></div>
+        </div>
+    </div>
+
+    <!-- Severity breakdown -->
+    <div class="bg-attijari-panel p-6 rounded-xl border border-slate-800/80">
+        <h3 class="text-sm font-semibold text-white mb-1">Niveau de sévérité global</h3>
+        <p class="text-[11px] text-slate-500 mb-4">Répartition des IOC de la base par sévérité déduite</p>
+        <div style="position: relative; width: 100%; height: 160px;">
+            <canvas id="severityChart" role="img" aria-label="Diagramme en barres horizontales du nombre d'IOC par niveau de sévérité : critique, élevé, moyen, faible">Répartition des IOC par sévérité.</canvas>
+        </div>
+    </div>
+
+</div>
+
+{{ scan_days|json_script:"scan-days-data" }}
+{{ scan_counts|json_script:"scan-counts-data" }}
+{{ ioc_type_labels|json_script:"ioc-type-labels-data" }}
+{{ ioc_type_counts|json_script:"ioc-type-counts-data" }}
+{{ severity_counts|json_script:"severity-counts-data" }}
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+    function readJson(id, fallback) {
+        const el = document.getElementById(id);
+        if (!el) return fallback;
+        try { return JSON.parse(el.textContent); } catch (e) { return fallback; }
+    }
+
+    const scanDays = readJson('scan-days-data', ['J-6','J-5','J-4','J-3','J-2','J-1','J']);
+    const scanCounts = readJson('scan-counts-data', [12, 19, 14, 22, 18, 25, 30]);
+    const iocTypeLabels = readJson('ioc-type-labels-data', ['IP', 'URL', 'Domaine', 'Hash', 'CVE']);
+    const iocTypeCounts = readJson('ioc-type-counts-data', [40, 25, 18, 12, 5]);
+    const severityCounts = readJson('severity-counts-data', { critique: 6, eleve: 14, moyen: 22, faible: 31 });
+
+    /* Brand gradient line: orange -> red, echoes the Attijari mark */
+    const scansCtx = document.getElementById('scansChart');
+    const scansGradient = scansCtx.getContext('2d').createLinearGradient(0, 0, 0, 260);
+    scansGradient.addColorStop(0, 'rgba(239, 108, 0, 0.35)');
+    scansGradient.addColorStop(1, 'rgba(198, 40, 40, 0.02)');
+
+    new Chart(scansCtx, {
+        type: 'line',
+        data: {
+            labels: scanDays,
+            datasets: [{
+                label: 'Scans',
+                data: scanCounts,
+                borderColor: '#EF6C00',
+                backgroundColor: scansGradient,
+                fill: true,
+                tension: 0.35,
+                pointRadius: 3,
+                pointBackgroundColor: '#C62828',
+                pointBorderColor: '#0A0E1A',
+                pointBorderWidth: 2,
+                borderWidth: 2,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 11 } } },
+                y: { beginAtZero: true, grid: { color: 'rgba(148,163,184,0.08)' }, ticks: { color: '#64748b', font: { size: 11 } } }
+            }
+        }
+    });
+
+    /* Brand ramp for IOC types: red -> orange -> gold, then neutral slate for the rest */
+    const brandRamp = ['#C62828', '#EF6C00', '#F2994A', '#64748B', '#334155'];
+    const iocTotal = iocTypeCounts.reduce((a, b) => a + b, 0);
+
+    new Chart(document.getElementById('iocTypeChart'), {
+        type: 'doughnut',
+        data: {
+            labels: iocTypeLabels,
+            datasets: [{
+                data: iocTypeCounts,
+                backgroundColor: brandRamp,
+                borderColor: '#131C2E',
+                borderWidth: 3,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '70%',
+            plugins: { legend: { display: false } }
+        }
+    });
+
+    const legendEl = document.getElementById('iocTypeLegend');
+    legendEl.innerHTML = iocTypeLabels.map((label, i) => {
+        const pct = iocTotal ? Math.round((iocTypeCounts[i] / iocTotal) * 100) : 0;
+        return `<span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm inline-block" style="background:${brandRamp[i % brandRamp.length]}"></span>${label} ${pct}%</span>`;
+    }).join('');
+
+    /* Severity scale: red (critique) through emerald (faible) - consistent across the app */
+    new Chart(document.getElementById('severityChart'), {
+        type: 'bar',
+        data: {
+            labels: ['Critique', 'Élevé', 'Moyen', 'Faible'],
+            datasets: [{
+                data: [severityCounts.critique, severityCounts.eleve, severityCounts.moyen, severityCounts.faible],
+                backgroundColor: ['#C62828', '#EF6C00', '#F2C94C', '#10B981'],
+                borderRadius: 4,
+                barThickness: 26,
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { beginAtZero: true, grid: { color: 'rgba(148,163,184,0.08)' }, ticks: { color: '#64748b', font: { size: 11 } } },
+                y: { grid: { display: false }, ticks: { color: '#cbd5e1', font: { size: 12 } } }
+            }
+        }
+    });
+</script>
+{% endblock %}

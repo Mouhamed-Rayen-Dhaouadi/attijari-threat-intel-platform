@@ -1,0 +1,21 @@
+# Environnement virtuel (ignore tout le dossier venv)
+venv/
+.venv/
+env/
+
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Base de données locale (si applicable)
+*.sqlite3
+
+# Fichiers système et IDE
+.idea/
+.vscode/
+.DS_Store
+
+# Fichiers de configuration sensibles ou d'environnement (si tu en as)
+.env

@@ -1,0 +1,30 @@
+{% extends 'threat_analyzer/base.html' %}
+
+{% block title %}Confirmer la suppression - Attijari Bank{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-md text-white">
+    <div class="bg-attijari-panel border border-attijari-red/40 rounded-xl shadow-xl p-6 text-center">
+        <div class="w-14 h-14 bg-attijari-red/10 text-attijari-red rounded-full flex items-center justify-center text-2xl mx-auto mb-4">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <h2 class="text-lg font-bold mb-2">Supprimer cette source API ?</h2>
+        <p class="text-sm text-slate-400 mb-6">
+            Vous êtes sur le point de supprimer la configuration
+            <span class="font-mono font-bold text-white">{{ configuration.nom_fournisseur }}</span>.
+            Les scans utilisant cette source ne fonctionneront plus tant qu'elle ne sera pas reconfigurée.
+        </p>
+        <form method="POST" class="flex gap-3 justify-center">
+            {% csrf_token %}
+            <button type="submit"
+                    class="bg-attijari-red hover:bg-red-700 text-white font-medium px-5 py-2.5 rounded-lg transition shadow-md text-sm">
+                Oui, supprimer
+            </button>
+            <a href="{% url 'liste_api' %}"
+               class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium px-5 py-2.5 rounded-lg border border-slate-700 transition text-sm">
+                Annuler
+            </a>
+        </form>
+    </div>
+</div>
+{% endblock %}

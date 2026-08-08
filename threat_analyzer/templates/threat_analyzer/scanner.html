@@ -1,0 +1,295 @@
+{% extends 'threat_analyzer/base.html' %}
+
+{% block title %}Investigation IOC - Attijari Bank{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<style>
+    #carte-scanner { height: 400px; border-radius: 12px; }
+    .leaflet-popup-content-wrapper { background: #131C2E; color: white; border-radius: 8px; }
+    .leaflet-popup-tip { background: #131C2E; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-4xl">
+
+    <div class="text-center mb-8">
+        <h2 class="text-2xl font-display font-extrabold tracking-tight text-white">Investigation d'un IOC</h2>
+        <p class="text-sm text-slate-400 mt-1">Analyse et corrélation instantanée pour la cellule de sécurité d'Attijari Bank.</p>
+        <div class="text-center mb-8">
+    <h2 class="text-2xl font-display font-extrabold tracking-tight text-white">Investigation d'un IOC</h2>
+    <p class="text-sm text-slate-400 mt-1">Analyse et corrélation instantanée pour la cellule de sécurité d'Attijari Bank.</p>
+    
+</div>
+    </div>
+
+    <form id="scan-form" method="POST" class="flex gap-3 bg-attijari-panel p-2 rounded-xl border border-slate-800/80 shadow-xl mb-8">
+        {% csrf_token %}
+        <div class="flex items-center pl-3 text-slate-500">
+            <i class="fa-solid fa-shield-halved text-lg"></i>
+        </div>
+        <input type="text" id="ioc-input" name="ioc_input" required
+               value="{% if result %}{{ result.ioc_value }}{% endif %}"
+               class="w-full bg-transparent border-none outline-none text-white placeholder-slate-500 px-2 font-data text-sm"
+               placeholder="Entrez une IP, un domaine ou un hash de fichier...">
+        <button type="submit" name="action_scan"
+                class="bg-gradient-to-r from-attijari-red to-attijari-orange hover:opacity-90 text-white font-medium px-5 py-2.5 rounded-lg transition shadow-md whitespace-nowrap text-sm">
+            Analyser l'indicateur
+        </button>
+    </form>
+
+    <div id="loading-panel" class="hidden bg-attijari-panel border border-slate-800 rounded-xl p-6 shadow-xl mb-8 space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div class="flex items-center gap-3">
+                <div class="animate-spin text-attijari-orange text-lg">
+                    <i class="fa-solid fa-circle-notch"></i>
+                </div>
+                <h3 class="text-sm font-semibold text-slate-200">Pipeline d'investigation SecOps actif...</h3>
+            </div>
+            <span class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded font-mono" id="scan-target"></span>
+        </div>
+        
+        <div class="space-y-3 pl-1">
+            <div id="step-connectors" class="flex items-center gap-3 text-sm text-slate-500 transition-all duration-300">
+                <i class="fa-solid fa-circle-dot text-xs text-slate-600 status-icon"></i>
+                <span>Interrogation des API Threat Intel (<span class="font-mono text-xs">VirusTotal / AbuseIPDB / NVD</span>)</span>
+            </div>
+            <div id="step-llama" class="flex items-center gap-3 text-sm text-slate-500 transition-all duration-300">
+                <i class="fa-solid fa-circle-dot text-xs text-slate-600 status-icon"></i>
+                <span>Génération du rapport contextuel par <span class="text-attijari-orange font-semibold">Llama 3.2</span></span>
+            </div>
+            <div id="step-final" class="flex items-center gap-3 text-sm text-slate-500 transition-all duration-300">
+                <i class="fa-solid fa-circle-dot text-xs text-slate-600 status-icon"></i>
+                <span>Finalisation et mise en forme du rendu</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="result-container">
+    {% if result %}
+        
+        {% if is_cached_result %}
+        <div class="bg-blue-950/30 border border-blue-800/40 rounded-xl p-4 mb-6 flex justify-between items-center text-sm text-blue-300 animate-fade-in">
+            <div class="flex items-center gap-2.5">
+                <i class="fa-solid fa-clock-rotate-left text-base text-blue-400"></i>
+                <div>
+                    <span class="font-semibold block">Données issues de l'historique local</span>
+                    <span class="text-xs text-slate-400">Dernière analyse : {{ result.updated_at|date:"d/m/Y H:i" }}</span>
+                </div>
+            </div>
+            <form method="POST" id="update-form">
+                {% csrf_token %}
+                <input type="hidden" name="ioc_input" value="{{ result.ioc_value }}">
+                <button type="submit" name="action_force_update"
+                        class="bg-blue-900/60 hover:bg-blue-800 border border-blue-700 text-blue-200 text-xs px-3 py-1.5 rounded-lg transition font-medium flex items-center gap-1.5">
+                    <i class="fa-solid fa-arrows-rotate"></i> Mettre à jour l'indicateur
+                </button>
+            </form>
+        </div>
+        {% endif %}
+
+        {% if result.severity == 'critique' or result.severity == 'eleve' or result.is_dangerous %}
+            {% if result.severity == 'critique' or not result.severity %}
+                <div class="bg-attijari-panel border border-slate-800/80 rounded-xl shadow-xl overflow-hidden">
+                    <div class="bg-attijari-red/10 border-b border-attijari-red/40 p-5 flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-attijari-red/10 text-attijari-red rounded-lg flex items-center justify-center text-lg">
+                                <i class="fa-solid fa-skull-crossbones"></i>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xl font-data font-bold text-attijari-red">{{ result.ioc_value }}</span>
+                                    <span class="bg-attijari-red/10 text-attijari-red border border-attijari-red/40 text-[10px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider">Menace Critique</span>
+                                </div>
+                                <p class="text-xs text-slate-400 mt-0.5">Type : <span class="text-slate-300 font-data">{{ result.ioc_type }}</span></p>
+                            </div>
+                        </div>
+                        <a href="{% url 'exporter_pdf' result.ioc_value %}" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium px-3 py-2 rounded-lg border border-slate-700 transition flex items-center gap-1">
+                            <i class="fa-solid fa-file-pdf text-attijari-red"></i> Exporter en PDF
+                        </a>
+                    </div>
+            {% else %}
+                <div class="bg-attijari-panel border border-slate-800/80 rounded-xl shadow-xl overflow-hidden">
+                    <div class="bg-attijari-orange/10 border-b border-attijari-orange/40 p-5 flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-attijari-orange/10 text-attijari-orange rounded-lg flex items-center justify-center text-lg">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xl font-data font-bold text-attijari-orange">{{ result.ioc_value }}</span>
+                                    <span class="bg-attijari-orange/10 text-attijari-orange border border-attijari-orange/40 text-[10px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider">Menace Élevée</span>
+                                </div>
+                                <p class="text-xs text-slate-400 mt-0.5">Type : <span class="text-slate-300 font-data">{{ result.ioc_type }}</span></p>
+                            </div>
+                        </div>
+                        <a href="{% url 'exporter_pdf' result.ioc_value %}" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium px-3 py-2 rounded-lg border border-slate-700 transition flex items-center gap-1">
+                            <i class="fa-solid fa-file-pdf text-attijari-orange"></i> Exporter en PDF
+                        </a>
+                    </div>
+            {% endif %}
+                    <div class="p-5 space-y-4">
+                        <div>
+                            <h4 class="text-xs font-bold uppercase text-slate-500 tracking-wider mb-2">Résumé de l'analyse IA (Ollama)</h4>
+                            <div class="bg-attijari-void p-4 rounded-lg border border-slate-800/80 font-data text-sm text-slate-300 whitespace-pre-line leading-relaxed">{{ result.context_summary }}</div>
+                        </div>
+                    </div>
+                </div>
+
+        {% elif result.severity == 'moyen' %}
+        <div class="bg-attijari-panel border border-slate-800/80 rounded-xl shadow-xl overflow-hidden">
+            <div class="bg-severity-moyen/10 border-b border-severity-moyen/40 p-5 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-severity-moyen/10 text-severity-moyen rounded-lg flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xl font-data font-bold text-severity-moyen">{{ result.ioc_value }}</span>
+                            <span class="bg-severity-moyen/10 text-severity-moyen border border-severity-moyen/40 text-[10px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider">Menace Moyenne</span>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-0.5">Type : <span class="text-slate-300 font-data">{{ result.ioc_type }}</span></p>
+                    </div>
+                </div>
+                <a href="{% url 'exporter_pdf' result.ioc_value %}" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium px-3 py-2 rounded-lg border border-slate-700 transition flex items-center gap-1">
+                    <i class="fa-solid fa-file-pdf text-amber-500"></i> Exporter en PDF
+                </a>
+            </div>
+            <div class="p-5 space-y-4">
+                <div>
+                    <h4 class="text-xs font-bold uppercase text-slate-500 tracking-wider mb-2">Résumé de l'analyse IA (Ollama)</h4>
+                    <div class="bg-attijari-void p-4 rounded-lg border border-slate-800/80 font-data text-sm text-slate-300 whitespace-pre-line leading-relaxed">{{ result.context_summary }}</div>
+                </div>
+            </div>
+        </div>
+
+        {% else %}
+        <div class="bg-attijari-panel border border-slate-800/80 rounded-xl shadow-xl overflow-hidden">
+            <div class="bg-emerald-950/20 border-b border-emerald-500/30 p-5 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-emerald-500/10 text-emerald-400 rounded-lg flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xl font-data font-bold text-emerald-400">{{ result.ioc_value }}</span>
+                            <span class="bg-emerald-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider">Sain</span>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-0.5">Type : <span class="text-slate-300 font-data">{{ result.ioc_type }}</span></p>
+                    </div>
+                </div>
+                <a href="{% url 'exporter_pdf' result.ioc_value %}" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium px-3 py-2 rounded-lg border border-slate-700 transition flex items-center gap-1">
+                    <i class="fa-solid fa-file-pdf text-emerald-400"></i> Exporter en PDF
+                </a>
+            </div>
+            <div class="p-5 space-y-4">
+                <div>
+                    <h4 class="text-xs font-bold uppercase text-slate-500 tracking-wider mb-2">Résumé de l'analyse IA (Ollama)</h4>
+                    <div class="bg-attijari-void p-4 rounded-lg border border-slate-800/80 font-data text-sm text-slate-300 whitespace-pre-line leading-relaxed">{{ result.context_summary }}</div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+    {% else %}
+    <div id="empty-state" class="bg-attijari-panel border border-dashed border-slate-800 rounded-xl p-10 text-center text-slate-500">
+        <i class="fa-solid fa-magnifying-glass-chart text-3xl mb-3 block text-slate-700"></i>
+        Saisissez un indicateur ci-dessus pour lancer une analyse.
+    </div>
+    {% endif %}
+    </div>
+    <div class="mt-8">
+    <h3 class="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+        <i class="fa-solid fa-map-location-dot text-attijari-orange"></i>
+        Carte des IP scannées
+    </h3>
+    <div id="carte-scanner" class="border border-slate-800 shadow-xl"></div>
+</div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+    const pointsCarteScanner = {{ points_json|safe }};
+
+    const carteScanner = L.map('carte-scanner', { worldCopyJump: true }).setView([20, 0], 2);
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+        subdomains: 'abcd',
+        maxZoom: 19,
+    }).addTo(carteScanner);
+
+    const couleursSeverite = {
+        critique: '#C62828',
+        eleve: '#EF6C00',
+        moyen: '#F2C94C',
+        faible: '#10B981',
+    };
+
+    pointsCarteScanner.forEach(function(p) {
+        const couleur = couleursSeverite[p.severite] || '#64748b';
+
+        L.circleMarker([p.latitude, p.longitude], {
+            radius: 7,
+            fillColor: couleur,
+            color: '#0A0E1A',
+            weight: 2,
+            fillOpacity: 0.85,
+        }).addTo(carteScanner).bindPopup(
+            `<strong>${p.drapeau} ${p.valeur}</strong><br>${p.ville ? p.ville + ', ' : ''}${p.pays}<br><span style="color:${couleur}">${p.severite.toUpperCase()}</span>`
+        );
+    });
+</script>
+<script>
+function triggerLoadingSequence(inputValue) {
+    document.getElementById('loading-panel').classList.remove('hidden');
+    document.getElementById('scan-target').innerText = inputValue;
+    
+    const resultContainer = document.getElementById('result-container');
+    if (resultContainer) resultContainer.style.display = 'none'; 
+
+    const emptyState = document.getElementById('empty-state');
+    if(emptyState) emptyState.classList.add('hidden');
+    
+    const step1 = document.getElementById('step-connectors');
+    const step2 = document.getElementById('step-llama');
+    const step3 = document.getElementById('step-final');
+    
+    step1.classList.remove('text-slate-500');
+    step1.classList.add('text-white', 'font-medium');
+    step1.querySelector('.status-icon').className = "fa-solid fa-spinner animate-spin text-attijari-orange text-xs status-icon";
+    
+    setTimeout(() => {
+        step1.classList.replace('text-white', 'text-emerald-400');
+        step1.querySelector('.status-icon').className = "fa-solid fa-circle-check text-emerald-400 text-xs status-icon";
+        
+        step2.classList.remove('text-slate-500');
+        step2.classList.add('text-white', 'font-medium');
+        step2.querySelector('.status-icon').className = "fa-solid fa-spinner animate-spin text-attijari-orange text-xs status-icon";
+    }, 2200);
+
+    setTimeout(() => {
+        step2.classList.replace('text-white', 'text-emerald-400');
+        step2.querySelector('.status-icon').className = "fa-solid fa-circle-check text-emerald-400 text-xs status-icon";
+        
+        step3.classList.remove('text-slate-500');
+        step3.classList.add('text-white', 'font-medium');
+        step3.querySelector('.status-icon').className = "fa-solid fa-ellipsis animate-pulse text-attijari-orange text-xs status-icon";
+    }, 4800);
+}
+
+// Intercepteur 1 : Scan Classique
+document.getElementById('scan-form').addEventListener('submit', function(e) {
+    triggerLoadingSequence(document.getElementById('ioc-input').value);
+});
+
+// Intercepteur 2 : Bouton de force-update (si présent à l'écran)
+document.addEventListener('submit', function(e) {
+    if(e.target && e.target.id === 'update-form'){
+        const hiddenValue = e.target.querySelector('input[name="ioc_input"]').value;
+        triggerLoadingSequence(hiddenValue);
+    }
+});
+</script>
+{% endblock %}

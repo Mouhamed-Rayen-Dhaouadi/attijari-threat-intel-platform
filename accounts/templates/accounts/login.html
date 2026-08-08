@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion - Attijari Threat Intelligence</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        display: ['Manrope', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        attijari: {
+                            red: '#C62828',
+                            orange: '#EF6C00',
+                            void: '#0A0E1A',
+                            panel: '#131C2E',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Manrope', sans-serif; }
+    </style>
+</head>
+<body class="bg-attijari-void text-slate-100 min-h-screen flex items-center justify-center p-4">
+
+    <div class="w-full max-w-sm">
+        <div class="text-center mb-8">
+            <svg width="48" height="48" viewBox="0 0 34 34" class="mx-auto mb-4" aria-hidden="true">
+                <defs>
+                    <linearGradient id="brandGrad" x1="0" y1="34" x2="34" y2="0">
+                        <stop offset="0%" stop-color="#C62828"/>
+                        <stop offset="100%" stop-color="#F2994A"/>
+                    </linearGradient>
+                </defs>
+                <rect width="34" height="34" rx="8" fill="url(#brandGrad)"/>
+                <path d="M17 8 L25 26 L20.5 26 L17 17.5 L13.5 26 L9 26 Z" fill="#0A0E1A"/>
+            </svg>
+            <h1 class="text-xl font-display font-extrabold text-white">Attijari Bank</h1>
+            <p class="text-[10px] font-semibold text-slate-500 tracking-widest mt-1 uppercase">Threat Intel Platform</p>
+        </div>
+
+        {% if form.errors %}
+        <div class="bg-red-950/40 border border-red-800/50 text-red-400 text-sm rounded-lg p-3.5 mb-4 flex gap-2 items-start">
+            <i class="fa-solid fa-circle-exclamation mt-0.5 text-xs"></i>
+            <span>Nom d'utilisateur ou mot de passe incorrect.</span>
+        </div>
+        {% endif %}
+
+        <form method="POST" class="bg-attijari-panel p-6 rounded-xl border border-slate-800/80 shadow-2xl space-y-4">
+            {% csrf_token %}
+            
+            <div>
+                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5">Utilisateur</label>
+                <input type="text" name="username" required autofocus
+                       class="w-full bg-attijari-void border border-slate-700 rounded-lg px-3.5 py-2.5 text-white text-sm outline-none focus:border-attijari-orange focus:ring-1 focus:ring-attijari-orange transition-all placeholder-slate-600">
+            </div>
+            
+            <div>
+                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5">Mot de passe</label>
+                <input type="password" name="password" required
+                       class="w-full bg-attijari-void border border-slate-700 rounded-lg px-3.5 py-2.5 text-white text-sm outline-none focus:border-attijari-orange focus:ring-1 focus:ring-attijari-orange transition-all">
+            </div>
+            
+            <button type="submit"
+                    class="w-full bg-gradient-to-r from-attijari-red to-attijari-orange hover:opacity-95 active:scale-[0.99] text-white font-medium px-5 py-2.5 rounded-lg transition-all shadow-md text-sm mt-2 font-display">
+                Se connecter
+            </button>
+        </form>
+
+        <div class="mt-6 text-center px-4">
+            <p class="text-xs text-slate-500 leading-relaxed">
+                <i class="fa-solid fa-circle-info text-slate-600 mr-1"></i>
+                En cas de perte d'accès ou de mot de passe oublié, veuillez contacter l'administrateur de la plateforme pour réinitialiser vos identifiants.
+            </p>
+        </div>
+
+        <p class="text-center text-[10px] text-slate-600 mt-6 tracking-wider uppercase">SecOps Portal · Accès restreint</p>
+    </div>
+
+</body>
+</html>

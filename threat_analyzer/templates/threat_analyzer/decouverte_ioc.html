@@ -1,0 +1,76 @@
+{% extends 'threat_analyzer/base.html' %}
+
+{% block title %}Découverte de Nouveaux IOC - Attijari Bank{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-6xl text-white">
+    <div class="mb-6 flex items-center justify-between">
+        <div>
+            <h2 class="text-2xl font-bold tracking-tight">Découverte de Nouveaux IOC</h2>
+            <p class="text-sm text-slate-400 mt-1">Indicateurs récemment partagés par la communauté sécurité (ThreatFox, Feodo Tracker).</p>
+        </div>
+        <a href="{% url 'decouverte_ioc' %}"
+           class="bg-gradient-to-r from-attijari-red to-attijari-orange hover:opacity-90 text-white font-medium px-4 py-2.5 rounded-lg transition shadow-md text-sm flex items-center gap-2">
+            <i class="fa-solid fa-arrows-rotate"></i> Actualiser
+        </a>
+    </div>
+
+    <div class="bg-attijari-panel border border-slate-800 rounded-xl shadow-xl overflow-x-auto">
+        <table class="w-full text-left border-separate border-spacing-0">
+            <thead>
+                <tr class="border-b border-slate-800 bg-[#0d1524] text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    <th class="py-4 px-6">Indicateur</th>
+                    <th class="py-4 px-6">Type</th>
+                    <th class="py-4 px-6">Malware associé</th>
+                    <th class="py-4 px-6">Source</th>
+                    <th class="py-4 px-6">Découvert le</th>
+                    <th class="py-4 px-6 text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/60 text-sm">
+                {% for r in resultats %}
+                <tr class="hover:bg-slate-800/30 transition">
+                    <td class="py-4 px-6 font-mono font-bold text-slate-200">{{ r.valeur }}</td>
+                    <td class="py-4 px-6">
+                        <span class="px-2 py-0.5 rounded text-xs font-mono font-bold bg-slate-800 text-attijari-orange border border-slate-700">
+                            {{ r.type }}
+                        </span>
+                    </td>
+                    <td class="py-4 px-6 text-slate-300 text-xs">{{ r.malware }}</td>
+                    <td class="py-4 px-6 text-slate-400 text-xs">{{ r.source_feed }}</td>
+                    <td class="py-4 px-6 text-slate-500 font-mono text-xs">
+                        {{ r.date_decouverte|date:"d/m/Y H:i"|default:"—" }}
+                    </td>
+                    <td class="py-4 px-6 text-center whitespace-nowrap">
+                        {% if r.deja_ajoute %}
+                        <span class="inline-flex items-center gap-1.5 bg-slate-800 text-slate-500 text-xs font-medium px-3 py-1.5 rounded-lg border border-slate-700">
+                            <i class="fa-solid fa-check"></i> Déjà en base
+                        </span>
+                        {% else %}
+                        <form method="POST" action="{% url 'ajouter_ioc_decouvert' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="valeur" value="{{ r.valeur }}">
+                            <input type="hidden" name="type" value="{{ r.type }}">
+                            <input type="hidden" name="malware" value="{{ r.malware }}">
+                            <input type="hidden" name="source_feed" value="{{ r.source_feed }}">
+                            <button type="submit"
+                                    class="inline-flex items-center gap-1.5 bg-attijari-red/10 hover:bg-attijari-red/20 text-attijari-red text-xs font-medium px-3 py-1.5 rounded-lg border border-attijari-red/40 transition">
+                                <i class="fa-solid fa-plus"></i> Ajouter au blocage
+                            </button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="py-10 text-center text-slate-500">
+                        <i class="fa-solid fa-satellite-dish text-3xl mb-3 block text-slate-700"></i>
+                        Aucun IOC récent trouvé, ou aucune source configurée/accessible.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

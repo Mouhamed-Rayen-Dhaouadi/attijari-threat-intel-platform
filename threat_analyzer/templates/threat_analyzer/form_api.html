@@ -1,0 +1,105 @@
+{% extends 'threat_analyzer/base.html' %}
+
+{% block title %}{% if mode == 'creation' %}Nouvelle Source API{% else %}Modifier Source API{% endif %} - Attijari Bank{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-lg text-white">
+    <div class="mb-6">
+        <h2 class="text-2xl font-bold tracking-tight">
+            {% if mode == 'creation' %}Nouvelle source API{% else %}Modifier {{ configuration.nom_fournisseur }}{% endif %}
+        </h2>
+        <p class="text-sm text-slate-400 mt-1">
+            {% if mode == 'creation' %}Ajouter un nouveau fournisseur de Threat Intelligence.{% else %}Mettre à jour la configuration.{% endif %}
+        </p>
+    </div>
+
+    <form method="POST" 
+          class="bg-[#0b121f] border border-slate-800 rounded-xl shadow-xl p-6 space-y-5
+                 [&_input[type=text]]:w-full [&_input[type=text]]:bg-slate-900 [&_input[type=text]]:border [&_input[type=text]]:border-slate-700 [&_input[type=text]]:rounded-lg [&_input[type=text]]:px-3.5 [&_input[type=text]]:py-2 [&_input[type=text]]:text-sm [&_input[type=text]]:text-slate-100 [&_input[type=text]]:focus:outline-none [&_input[type=text]]:focus:border-attijari-orange [&_input[type=text]]:focus:ring-1 [&_input[type=text]]:focus:ring-attijari-orange [&_input[type=text]]:transition
+                 [&_input[type=password]]:w-full [&_input[type=password]]:bg-slate-900 [&_input[type=password]]:border [&_input[type=password]]:border-slate-700 [&_input[type=password]]:rounded-lg [&_input[type=password]]:px-3.5 [&_input[type=password]]:py-2 [&_input[type=password]]:text-sm [&_input[type=password]]:text-slate-100 [&_input[type=password]]:focus:outline-none [&_input[type=password]]:focus:border-attijari-orange [&_input[type=password]]:focus:ring-1 [&_input[type=password]]:focus:ring-attijari-orange [&_input[type=password]]:transition
+                 [&_input[type=number]]:w-full [&_input[type=number]]:bg-slate-900 [&_input[type=number]]:border [&_input[type=number]]:border-slate-700 [&_input[type=number]]:rounded-lg [&_input[type=number]]:px-3.5 [&_input[type=number]]:py-2 [&_input[type=number]]:text-sm [&_input[type=number]]:text-slate-100 [&_input[type=number]]:focus:outline-none [&_input[type=number]]:focus:border-attijari-orange [&_input[type=number]]:focus:ring-1 [&_input[type=number]]:focus:ring-attijari-orange [&_input[type=number]]:transition">
+        
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+        <div class="bg-red-950/40 border border-red-800/50 text-red-400 text-sm rounded-lg p-3.5">
+            {{ form.non_field_errors }}
+        </div>
+        {% endif %}
+
+        <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5">Nom du fournisseur</label>
+            {{ form.nom_fournisseur }}
+            {% if form.nom_fournisseur.errors %}
+                <p class="text-red-400 text-xs mt-1 font-medium">{{ form.nom_fournisseur.errors|join:", " }}</p>
+            {% endif %}
+            <p class="text-[11px] text-slate-500 mt-1">Ex : VT (VirusTotal), ABUSEIPDB</p>
+        </div>
+
+        <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5">Clé API</label>
+            <div class="relative">
+                {{ form.cle_api }}
+                <button type="button" onclick="basculerVisibilite()"
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-attijari-orange transition-colors">
+                    <i class="fa-solid fa-eye text-sm" id="icone-visibilite"></i>
+                </button>
+            </div>
+            {% if form.cle_api.errors %}
+                <p class="text-red-400 text-xs mt-1 font-medium">{{ form.cle_api.errors|join:", " }}</p>
+            {% endif %}
+        </div>
+
+        <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5">Quota restant (nombre de requêtes autorisées)</label>
+            {{ form.quota_restant }}
+            {% if form.quota_restant.errors %}
+                <p class="text-red-400 text-xs mt-1 font-medium">{{ form.quota_restant.errors|join:", " }}</p>
+            {% endif %}
+        </div>
+
+        <div class="flex items-center gap-3 bg-slate-900/50 border border-slate-800/80 rounded-lg p-3">
+            <div class="flex items-center h-5">
+                {{ form.actif }}
+            </div>
+            <label for="id_actif" class="text-sm text-slate-300 font-medium cursor-pointer selection:bg-transparent select-none">
+                Source active
+            </label>
+        </div>
+
+        <div class="flex gap-3 pt-3">
+            <button type="submit"
+                    class="bg-gradient-to-r from-attijari-red to-attijari-orange hover:opacity-90 active:scale-[0.98] text-white font-medium px-5 py-2.5 rounded-lg transition-all shadow-lg text-sm">
+                {% if mode == 'creation' %}Ajouter la source{% else %}Enregistrer les modifications{% endif %}
+            </button>
+            <a href="{% url 'liste_api' %}"
+               class="bg-slate-800 hover:bg-slate-700 active:scale-[0.98] text-slate-300 font-medium px-5 py-2.5 rounded-lg border border-slate-700 transition-all text-sm text-center">
+                Annuler
+            </a>
+        </div>
+    </form>
+</div>
+
+<script>
+function basculerVisibilite() {
+    const champ = document.getElementById('id_cle_api');
+    const icone = document.getElementById('icone-visibilite');
+
+    if (champ.type === 'password') {
+        champ.type = 'text';
+        icone.className = 'fa-solid fa-eye-slash text-sm text-attijari-orange';
+    } else {
+        champ.type = 'password';
+        icone.className = 'fa-solid fa-eye text-sm';
+    }
+}
+
+// Optionnel : Ajoute un style moderne à la volée sur la checkbox pour éviter l'aspect navigateur par défaut
+document.addEventListener("DOMContentLoaded", function() {
+    const activeCheckbox = document.querySelector('input[type="checkbox"]');
+    if (activeCheckbox) {
+        activeCheckbox.className = "w-4 h-4 rounded border-slate-700 bg-slate-900 text-attijari-orange focus:ring-attijari-orange focus:ring-offset-slate-900 focus:ring-2 cursor-pointer transition-all";
+    }
+});
+</script>
+{% endblock %}
