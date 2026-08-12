@@ -16,11 +16,6 @@
     <div class="text-center mb-8">
         <h2 class="text-2xl font-display font-extrabold tracking-tight text-white">Investigation d'un IOC</h2>
         <p class="text-sm text-slate-400 mt-1">Analyse et corrélation instantanée pour la cellule de sécurité d'Attijari Bank.</p>
-        <div class="text-center mb-8">
-    <h2 class="text-2xl font-display font-extrabold tracking-tight text-white">Investigation d'un IOC</h2>
-    <p class="text-sm text-slate-400 mt-1">Analyse et corrélation instantanée pour la cellule de sécurité d'Attijari Bank.</p>
-    
-</div>
     </div>
 
     <form id="scan-form" method="POST" class="flex gap-3 bg-attijari-panel p-2 rounded-xl border border-slate-800/80 shadow-xl mb-8">
@@ -85,6 +80,22 @@
                     <i class="fa-solid fa-arrows-rotate"></i> Mettre à jour l'indicateur
                 </button>
             </form>
+        </div>
+        {% endif %}
+
+        {% if deja_menace %}
+        <div class="bg-attijari-red/10 border border-attijari-red/40 rounded-xl p-4 mb-6 flex justify-between items-center text-sm text-attijari-red animate-fade-in">
+            <div class="flex items-center gap-2.5">
+                <i class="fa-solid fa-flag text-base"></i>
+                <div>
+                    <span class="font-semibold block">Cet IOC figure dans le blocklist</span>
+                    <span class="text-xs text-slate-400">Il a déjà été confirmé comme menace par un analyste.</span>
+                </div>
+            </div>
+            <a href="{% url 'liste_menaces' %}"
+               class="bg-attijari-red/20 hover:bg-attijari-red/30 border border-attijari-red/50 text-attijari-red text-xs px-3 py-1.5 rounded-lg transition font-medium flex items-center gap-1.5 whitespace-nowrap">
+                <i class="fa-solid fa-list"></i> Consulter le blocklist
+            </a>
         </div>
         {% endif %}
 
@@ -198,13 +209,14 @@
     </div>
     {% endif %}
     </div>
+
     <div class="mt-8">
-    <h3 class="text-sm font-semibold text-white mb-3 flex items-center gap-2">
-        <i class="fa-solid fa-map-location-dot text-attijari-orange"></i>
-        Carte des IP scannées
-    </h3>
-    <div id="carte-scanner" class="border border-slate-800 shadow-xl"></div>
-</div>
+        <h3 class="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+            <i class="fa-solid fa-map-location-dot text-attijari-orange"></i>
+            Carte des IP scannées
+        </h3>
+        <div id="carte-scanner" class="border border-slate-800 shadow-xl"></div>
+    </div>
 
 </div>
 

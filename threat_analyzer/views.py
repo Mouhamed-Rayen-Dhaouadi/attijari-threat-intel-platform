@@ -262,6 +262,8 @@ def ioc_scanner_view(request):
                 'updated_at': indicator.updated_at
             }
             context['is_cached_result'] = is_cached_result
+            context['deja_menace'] = hasattr(indicator, 'menace')
+
     context['points_json'] = json.dumps(_construire_points_carte())
 
     return render(request, 'threat_analyzer/scanner.html', context)
